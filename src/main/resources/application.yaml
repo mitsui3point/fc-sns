@@ -17,6 +17,6 @@ spring.datasource:
   driver-class-name: org.postgresql.Driver
 
 jwt:
-  secret-key: yoonho.sns-application-2022.secret_key
+  secret-key: ${JWT_SECRET_KEY}
   # 30 Days
   token-expired-time-ms: 2592000000

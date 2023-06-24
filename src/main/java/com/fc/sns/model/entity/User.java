@@ -1,7 +1,10 @@
 package com.fc.sns.model.entity;
 
 import com.fc.sns.enums.UserRole;
-import lombok.*;
+import lombok.AccessLevel;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.Where;
 
@@ -39,14 +42,9 @@ public class User {
     @Column(name = "deleted_at")
     private Timestamp deletedAt;
 
+    @Builder
     public User(Long id, String userName, String password) {
         this.id = id;
-        this.userName = userName;
-        this.password = password;
-    }
-
-    @Builder
-    public User(String userName, String password) {
         this.userName = userName;
         this.password = password;
     }

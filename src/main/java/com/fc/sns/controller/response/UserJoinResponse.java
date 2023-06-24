@@ -25,7 +25,7 @@ public class UserJoinResponse {
         return UserJoinResponse
                 .builder()
                 .id(userDto.getId())
-                .name(userDto.getUserName())
+                .name(userDto.getUsername())
                 .role(userDto.getRole())
                 .build();
     }

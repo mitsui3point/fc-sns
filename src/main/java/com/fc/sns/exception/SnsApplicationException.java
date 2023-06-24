@@ -2,8 +2,6 @@ package com.fc.sns.exception;
 
 import lombok.Getter;
 
-import javax.persistence.Entity;
-
 @Getter
 public class SnsApplicationException extends RuntimeException {
     private ErrorCode errorCode;

@@ -6,24 +6,25 @@ import com.fc.sns.model.UserDto;
 import com.fc.sns.model.entity.User;
 import com.fc.sns.repository.UserRepository;
 import com.fc.sns.util.JwtTokenUtils;
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-@RequiredArgsConstructor
 public class UserService {
 
     private final UserRepository userRepository;
     private final BCryptPasswordEncoder encoder;
+    private final String secretKey;
+    private final Long expiredTimeMs;
 
-    @Value("${jwt.secret-key}")
-    private String secretKey;
-
-    @Value("${jwt.token-expired-time-ms}")
-    private Long expiredTimeMs;
+    public UserService(UserRepository userRepository, BCryptPasswordEncoder encoder, @Value("${jwt.secret-key}") String secretKey, @Value("${jwt.token-expired-time-ms}") Long expiredTimeMs) {
+        this.userRepository = userRepository;
+        this.encoder = encoder;
+        this.secretKey = secretKey;
+        this.expiredTimeMs = expiredTimeMs;
+    }
 
     @Transactional
     public UserDto join(String userName, String password) {
@@ -43,7 +44,6 @@ public class UserService {
         return UserDto.fromEntity(savedUser);
     }
 
-    // TODO : implement
     public String login(String userName, String password) {
         // 회원가입 여부 체크
         User user = userRepository.findByUserName(userName).orElseThrow(() -> {
@@ -58,4 +58,11 @@ public class UserService {
         // 토큰 생성
         return JwtTokenUtils.generateToken(userName, secretKey, expiredTimeMs);
     }
+
+    public UserDto loadUserByUsername(String userName) {
+        return userRepository.findByUserName(userName)
+                .map(UserDto::fromEntity)
+                .orElseThrow(() -> new SnsApplicationException(ErrorCode.USER_NOT_FOUND, String.format("%s is not founded", userName)));
+    }
+
 }

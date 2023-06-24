@@ -4,6 +4,11 @@ import com.fc.sns.model.entity.User;
 
 public class UserFixture {
     public static User get() {
-        return new User(1L, "userName", "password");
+        return User.builder()
+                .id(1L)
+                .userName("userName")
+                .password("pasword")
+                .build();
     }
+
 }

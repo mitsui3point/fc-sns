@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class UserController {
 
-    public final UserService userService;
+    private final UserService userService;
 
     @PostMapping("/join")
     public Response<UserJoinResponse> join(@RequestBody UserJoinRequest userJoinRequest) {
@@ -26,7 +26,6 @@ public class UserController {
         return Response.success(UserJoinResponse.fromUserDto(userDto));
     }
 
-    // TODO : implement
     @PostMapping("/login")
     public Response<UserLoginResponse> login(@RequestBody UserLoginRequest userLoginRequest) {
         String token = userService.login(userLoginRequest.getName(), userLoginRequest.getPassword());
