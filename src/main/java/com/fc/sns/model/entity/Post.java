@@ -51,6 +51,10 @@ public class Post {
         this.updatedAt = Timestamp.from(Instant.now());
     }
 
+    public void deletedAt() {
+        this.deletedAt = Timestamp.from(Instant.now());
+    }
+
     @Builder
     public Post(Long id, String title, String body, User user) {
         this.id = id;

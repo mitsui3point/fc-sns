@@ -133,6 +133,74 @@ public class PostServiceTest {
         verify(postRepostiory, times(1)).findById(post.getId());
     }
 
+    @ParameterizedTest
+    @MethodSource("postFixtureSource")
+    void 포스트삭제가_성공한_경우(User user, Post post) {
+        //when
+        when(userRepository.findByUserName(user.getUserName())).thenReturn(Optional.of(user));
+        when(postRepostiory.findById(post.getId())).thenReturn(Optional.of(post));
+        doNothing().when(postRepostiory).flush();
+//        doNothing().when(postRepostiory).delete(post);
+
+        //then
+        Assertions.assertDoesNotThrow(() -> {
+            postService.delete(post.getId(), user.getUserName());
+        });
+        verify(userRepository, times(1)).findByUserName(user.getUserName());
+        verify(postRepostiory, times(1)).findById(post.getId());
+        verify(postRepostiory, times(1)).flush();
+    }
+
+
+    @ParameterizedTest
+    @MethodSource("postFixtureSource")
+    void 포스트삭제시_요청한_유저가_존재하지_않는_경우(User user, Post post) {
+        //when
+        when(userRepository.findByUserName(user.getUserName())).thenReturn(Optional.empty());
+
+        //then
+        SnsApplicationException e = Assertions.assertThrows(SnsApplicationException.class, () -> {
+            postService.delete(post.getId(), user.getUserName());
+        });
+        Assertions.assertEquals(ErrorCode.USER_NOT_FOUND, e.getErrorCode());
+        verify(userRepository, times(1)).findByUserName(user.getUserName());
+    }
+
+    @ParameterizedTest
+    @MethodSource("postFixtureSource")
+    void 포스트삭제시_작성한_글이_존재하지_않는_경우(User user, Post post) {
+        //when
+        when(userRepository.findByUserName(user.getUserName())).thenReturn(Optional.of(user));
+        when(postRepostiory.findById(post.getId())).thenReturn(Optional.empty());
+
+        //then
+        SnsApplicationException e = Assertions.assertThrows(SnsApplicationException.class, () -> {
+            postService.delete(post.getId(), user.getUserName());
+        });
+        Assertions.assertEquals(ErrorCode.POST_NOT_FOUND, e.getErrorCode());
+        verify(userRepository, times(1)).findByUserName(user.getUserName());
+        verify(postRepostiory, times(1)).findById(post.getId());
+    }
+
+    @ParameterizedTest
+    @MethodSource("postFixtureSource")
+    void 포스트삭제시_권한이_없는_경우(User user, Post post) {
+        //given
+        User notWriterUser = UserFixture.get("userName1", "password", 2L);
+
+        //when
+        when(userRepository.findByUserName(notWriterUser.getUserName())).thenReturn(Optional.of(notWriterUser));
+        when(postRepostiory.findById(post.getId())).thenReturn(Optional.of(post));
+
+        //then
+        SnsApplicationException e = Assertions.assertThrows(SnsApplicationException.class, () -> {
+            postService.delete(post.getId(), notWriterUser.getUserName());
+        });
+        Assertions.assertEquals(ErrorCode.INVALID_POST_PERMISSION, e.getErrorCode());
+        verify(userRepository, times(1)).findByUserName(notWriterUser.getUserName());
+        verify(postRepostiory, times(1)).findById(post.getId());
+    }
+
     private static Stream<Arguments> postFixtureSource() {
         User userFixture = UserFixture.get("userName", "password", 1L);
         Post postFixture = PostFixture.get("title", "body", userFixture, 1L);

@@ -11,8 +11,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.persistence.EntityManager;
-
 @Service
 @RequiredArgsConstructor
 public class PostService {
@@ -39,7 +37,8 @@ public class PostService {
                 .orElseThrow(() -> new SnsApplicationException(ErrorCode.USER_NOT_FOUND, String.format("%s is not founded", userName)));
 
         Post post = postRepostiory.findById(postId)
-                .orElseThrow(() -> new SnsApplicationException(ErrorCode.POST_NOT_FOUND, String.format("%s is not founded", title)));
+                .orElseThrow(() -> new SnsApplicationException(ErrorCode.POST_NOT_FOUND, String.format("%s is not founded", postId)));
+
 
         if (!post.isPostWriter(user)) {
             throw new SnsApplicationException(ErrorCode.INVALID_POST_PERMISSION, String.format("%s has no permission with %s", userName, post.getId()));
@@ -52,4 +51,20 @@ public class PostService {
         return PostDto.fromEntity(post);
     }
 
+    @Transactional
+    public void delete(Long postId, String userName) {
+        User user = userRepository.findByUserName(userName)
+                .orElseThrow(() -> new SnsApplicationException(ErrorCode.USER_NOT_FOUND, String.format("%s is not founded", userName)));
+
+        Post post = postRepostiory.findById(postId)
+                .orElseThrow(() -> new SnsApplicationException(ErrorCode.POST_NOT_FOUND, String.format("%s is not founded", postId)));
+
+        if (!post.isPostWriter(user)) {
+            throw new SnsApplicationException(ErrorCode.INVALID_POST_PERMISSION, String.format("%s has no permission with %s", userName, post.getId()));
+        }
+
+        post.deletedAt();
+        postRepostiory.flush();
+//        postRepostiory.delete(post);
+    }
 }
