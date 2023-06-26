@@ -58,4 +58,16 @@ public class Post {
         this.body = body;
         this.user = user;
     }
+
+    public void changeTitle(String title) {
+        this.title = title;
+    }
+
+    public void changeBody(String body) {
+        this.body = body;
+    }
+
+    public boolean isPostWriter(User user) {
+        return this.user.equals(user);
+    }
 }

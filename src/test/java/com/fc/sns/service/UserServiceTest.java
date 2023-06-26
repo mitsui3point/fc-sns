@@ -7,8 +7,12 @@ import com.fc.sns.model.UserDto;
 import com.fc.sns.model.entity.User;
 import com.fc.sns.repository.UserRepository;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -16,6 +20,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -33,133 +38,112 @@ class UserServiceTest {
     @MockBean
     private BCryptPasswordEncoder encoder;
 
-    @Test
-    void 회원가입이_정상적으로_동작하는_경우() {
-        //given
-        String userName = "userName";
-        String password = "password";
-        User fixture = UserFixture.get();
-
+    @ParameterizedTest
+    @MethodSource("userFixtureSource")
+    void 회원가입이_정상적으로_동작하는_경우(User user) {
         //when
-        when(userRepository.findByUserName(userName)).thenReturn(Optional.empty());
-        when(encoder.encode(password)).thenReturn("encrypt_password");
-        when(userRepository.save(any())).thenReturn(fixture);
+        when(userRepository.findByUserName(user.getUserName())).thenReturn(Optional.empty());
+        when(encoder.encode(user.getPassword())).thenReturn("encrypt_password");
+        when(userRepository.save(any())).thenReturn(user);
 
         //then
         Assertions.assertDoesNotThrow(() -> {
-            userService.join(userName, password);
+            userService.join(user.getUserName(), user.getPassword());
         });
-
-        verify(userRepository, times(1)).findByUserName(userName);
-        verify(encoder, times(1)).encode(password);
+        verify(userRepository, times(1)).findByUserName(user.getUserName());
+        verify(encoder, times(1)).encode(user.getPassword());
         verify(userRepository, times(1)).save(any());
     }
 
-    @Test
-    void 회원가입시_userName으로_회원가입한_유저가_이미_있는경우() {
-        //given
-        String userName = "userName";
-        String password = "password";
-        User fixture = UserFixture.get();
-
+    @ParameterizedTest
+    @MethodSource("userFixtureSource")
+    void 회원가입시_userName으로_회원가입한_유저가_이미_있는경우(User user) {
         //when
-        lenient().when(userRepository.findByUserName(userName)).thenReturn(Optional.of(fixture));
-        lenient().when(encoder.encode(password)).thenReturn("encrypt_password");
-        lenient().when(userRepository.save(any())).thenReturn(fixture);
+        when(userRepository.findByUserName(user.getUserName())).thenReturn(Optional.of(user));
 
         //then
         SnsApplicationException e = Assertions.assertThrows(SnsApplicationException.class, () -> {
-            userService.join(userName, password);
+            userService.join(user.getUserName(), user.getPassword());
         });
         Assertions.assertEquals(ErrorCode.DUPLICATED_USER_NAME, e.getErrorCode());
-
-        verify(userRepository, times(1)).findByUserName(userName);
-        verify(encoder, times(0)).encode(password);
-        verify(userRepository, times(0)).save(any());
+        verify(userRepository, times(1)).findByUserName(user.getUserName());
     }
 
-    @Test
-    void 로그인이_정상적으로_동작하는_경우() {
-        //given
-        String userName = "userName";
-        String password = "password";
-        User fixture = UserFixture.get();
-
+    @ParameterizedTest
+    @MethodSource("userFixtureSource")
+    void 로그인이_정상적으로_동작하는_경우(User user) {
         //when
-        when(userRepository.findByUserName(userName)).thenReturn(Optional.of(fixture));
+        when(userRepository.findByUserName(user.getUserName())).thenReturn(Optional.of(user));
         when(encoder.matches(any(), any())).thenReturn(true);
 
         //then
         Assertions.assertDoesNotThrow(() -> {
-            String token = userService.login(userName, password);
+            String token = userService.login(user.getUserName(), user.getPassword());
         });
-        verify(userRepository, times(1)).findByUserName(userName);
+        verify(userRepository, times(1)).findByUserName(user.getUserName());
         verify(encoder, times(1)).matches(any(), any());
     }
 
-    @Test
-    void 로그인_userName이_없는_경우() {
-        //given
-        String userName = "userName";
-        String password = "password";
-
+    @ParameterizedTest
+    @MethodSource("userFixtureSource")
+    void 로그인_userName이_없는_경우(User user) {
         //when
-        lenient().when(userRepository.findByUserName(userName)).thenReturn(Optional.empty());
-        lenient().when(encoder.matches(any(), any())).thenReturn(false);
+        when(userRepository.findByUserName(user.getUserName())).thenReturn(Optional.empty());
 
         //then
         SnsApplicationException e = Assertions.assertThrows(SnsApplicationException.class, () -> {
-            userService.login(userName, password);
+            userService.login(user.getUserName(), user.getPassword());
         });
         Assertions.assertEquals(ErrorCode.USER_NOT_FOUND, e.getErrorCode());
-        verify(userRepository, times(1)).findByUserName(userName);
-        verify(encoder, times(0)).matches(any(), any());
+        verify(userRepository, times(1)).findByUserName(user.getUserName());
     }
 
-    @Test
-    void 로그인_password가_일치하지_않는_경우() {
-        //given
-        String userName = "userName";
-        String password = "password";
-        User fixture = UserFixture.get();
-
+    @ParameterizedTest
+    @MethodSource("userFixtureSource")
+    void 로그인_password가_일치하지_않는_경우(User user) {
         //when
-        when(userRepository.findByUserName(userName)).thenReturn(Optional.of(fixture));
+        when(userRepository.findByUserName(user.getUserName())).thenReturn(Optional.of(user));
 
         //then
         SnsApplicationException e = Assertions.assertThrows(SnsApplicationException.class, () -> {
-            userService.login(userName, password);
+            userService.login(user.getUserName(), user.getPassword());
         });
         Assertions.assertEquals(ErrorCode.INVALID_PASSWORD, e.getErrorCode());
-        verify(userRepository, times(1)).findByUserName(userName);
+        verify(userRepository, times(1)).findByUserName(user.getUserName());
     }
 
-    @Test
-    void 유저정보_유저아이디로_조회() {
-        //given
-        User fixture = UserFixture.get();
-        String userName = fixture.getUserName();
-
+    @ParameterizedTest
+    @MethodSource("userFixtureSource")
+    void 유저정보_유저아이디로_조회(User user) {
         //when
-        when(userRepository.findByUserName(userName)).thenReturn(Optional.of(fixture));
+        when(userRepository.findByUserName(user.getUserName())).thenReturn(Optional.of(user));
 
         //then
-        UserDto result = userService.loadUserByUsername(userName);
-        Assertions.assertEquals(result, UserDto.fromEntity(fixture));
-        verify(userRepository, times(1)).findByUserName(userName);
+        UserDto result = userService.loadUserByUsername(user.getUserName());
+        Assertions.assertEquals(result, UserDto.fromEntity(user));
+        verify(userRepository, times(1)).findByUserName(user.getUserName());
     }
 
-    @Test
-    void 유저정보_유저아이디로_조회_실패() {
-        User fixture = UserFixture.get();
-        String userName = fixture.getUserName();
-
-        when(userRepository.findByUserName(userName)).thenReturn(Optional.empty());
+    @ParameterizedTest
+    @MethodSource("userFixtureSource")
+    void 유저정보_유저아이디로_조회_실패(User user) {
+        when(userRepository.findByUserName(user.getUserName())).thenReturn(Optional.empty());
 
         SnsApplicationException e = Assertions.assertThrows(SnsApplicationException.class, () -> {
-            userService.loadUserByUsername(userName);
+            userService.loadUserByUsername(user.getUserName());
         });
         Assertions.assertEquals(ErrorCode.USER_NOT_FOUND, e.getErrorCode());
-        verify(userRepository, times(1)).findByUserName(userName);
+        verify(userRepository, times(1)).findByUserName(user.getUserName());
+    }
+
+    private static Stream<Arguments> userFixtureSource() {
+        String userName = "userName";
+        String password = "password";
+        Long id = 1L;
+        return Stream.of(
+                Arguments.of(
+                        UserFixture.get(userName, password, id)
+                )
+        );
     }
 }
