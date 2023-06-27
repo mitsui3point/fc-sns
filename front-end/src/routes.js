@@ -82,12 +82,12 @@ const routes = [
     component: <MyPosts />,
   },
   {
-      type: 'collapse',
-      name: 'Alarms',
-      key: 'alarms',
-      route: '/alarms',
-      component: <Alarm />,
-    },
+    type: 'collapse',
+    name: 'Alarms',
+    key: 'alarms',
+    route: '/alarms',
+    component: <Alarm />,
+  },
 ];
 
 export default routes;

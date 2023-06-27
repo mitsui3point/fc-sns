@@ -110,7 +110,8 @@ function Basic() {
       });
   };
 
-  if (localStorage.getItem('token') == '') {
+  if (localStorage.getItem('token') == '' || localStorage.getItem('token') == null || localStorage.getItem('token') == undefined
+  ) {
     return (
       <DashboardLayout>
         <MDBox mt={30} mb={3}>
