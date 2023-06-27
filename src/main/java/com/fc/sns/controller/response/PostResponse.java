@@ -1,7 +1,6 @@
 package com.fc.sns.controller.response;
 
 import com.fc.sns.model.PostDto;
-import com.fc.sns.model.UserDto;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -18,7 +17,7 @@ public class PostResponse {
 
     private String body;
 
-    private UserResponse userResponse;
+    private UserResponse user;
 
     private Timestamp registeredAt;
 
@@ -27,11 +26,11 @@ public class PostResponse {
     private Timestamp deletedAt;
 
     @Builder
-    public PostResponse(Long id, String title, String body, UserResponse userResponse, Timestamp registeredAt, Timestamp updatedAt, Timestamp deletedAt) {
+    public PostResponse(Long id, String title, String body, UserResponse user, Timestamp registeredAt, Timestamp updatedAt, Timestamp deletedAt) {
         this.id = id;
         this.title = title;
         this.body = body;
-        this.userResponse = userResponse;
+        this.user = user;
         this.registeredAt = registeredAt;
         this.updatedAt = updatedAt;
         this.deletedAt = deletedAt;
@@ -42,7 +41,7 @@ public class PostResponse {
                 .id(postDto.getId())
                 .title(postDto.getTitle())
                 .body(postDto.getBody())
-                .userResponse(UserResponse.fromUserDto(postDto.getUserDto()))
+                .user(UserResponse.fromUserDto(postDto.getUserDto()))
                 .registeredAt(postDto.getRegisteredAt())
                 .updatedAt(postDto.getUpdatedAt())
                 .deletedAt(postDto.getDeletedAt())

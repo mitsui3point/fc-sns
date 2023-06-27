@@ -11,20 +11,20 @@ import lombok.NoArgsConstructor;
 @Getter
 public class UserResponse {
     private Long id;
-    private String userName;
+    private String name;
     private UserRole role;
 
     @Builder
-    public UserResponse(Long id, String userName, UserRole role) {
+    public UserResponse(Long id, String name, UserRole role) {
         this.id = id;
-        this.userName = userName;
+        this.name = name;
         this.role = role;
     }
 
     public static UserResponse fromUserDto(UserDto userDto) {
         return UserResponse.builder()
                 .id(userDto.getId())
-                .userName(userDto.getUsername())
+                .name(userDto.getUsername())
                 .role(userDto.getRole())
                 .build();
     }

@@ -7,7 +7,6 @@ import com.fc.sns.model.UserDto;
 import com.fc.sns.model.entity.User;
 import com.fc.sns.repository.UserRepository;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -67,6 +66,34 @@ class UserServiceTest {
         });
         Assertions.assertEquals(ErrorCode.DUPLICATED_USER_NAME, e.getErrorCode());
         verify(userRepository, times(1)).findByUserName(user.getUserName());
+    }
+
+    @Test
+    void 회원가입시_userName이_공백인_경우() {
+        //given
+        String userName = " ";
+        String password = "password";
+
+        //then
+        SnsApplicationException e = Assertions.assertThrows(SnsApplicationException.class, () -> {
+            //when
+            userService.join(userName, password);
+        });
+        Assertions.assertEquals(ErrorCode.NOT_ALLOWED_INVALID_USER_NAME, e.getErrorCode());
+    }
+
+    @Test
+    void 회원가입시_password가_공백인_경우() {
+        //given
+        String userName = "userName";
+        String password = " ";
+
+        //then
+        SnsApplicationException e = Assertions.assertThrows(SnsApplicationException.class, () -> {
+            //when
+            userService.join(userName, password);
+        });
+        Assertions.assertEquals(ErrorCode.NOT_ALLOWED_INVALID_PASSWORD, e.getErrorCode());
     }
 
     @ParameterizedTest

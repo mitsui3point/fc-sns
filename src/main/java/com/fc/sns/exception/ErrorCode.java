@@ -6,6 +6,8 @@ import org.springframework.http.HttpStatus;
 @Getter
 public enum ErrorCode {
     DUPLICATED_USER_NAME(HttpStatus.CONFLICT, "User name is duplicated"),
+    NOT_ALLOWED_INVALID_USER_NAME(HttpStatus.BAD_REQUEST, "User name is not empty"),
+    NOT_ALLOWED_INVALID_PASSWORD(HttpStatus.BAD_REQUEST, "Password is not empty"),
 
     USER_NOT_FOUND(HttpStatus.NOT_FOUND, "User not founded"),
     INVALID_PASSWORD(HttpStatus.UNAUTHORIZED, "Password is invalid"),

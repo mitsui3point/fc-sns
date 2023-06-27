@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 @Service
 public class UserService {
@@ -28,12 +29,19 @@ public class UserService {
 
     @Transactional
     public UserDto join(String userName, String password) {
-
+        // 회원가입 정보 확인
+        if (!StringUtils.hasText(userName.trim())) {
+            throw new SnsApplicationException(ErrorCode.NOT_ALLOWED_INVALID_USER_NAME, String.format("User name not allowed empty"));
+        }
+        if (!StringUtils.hasText(password.trim())) {
+            throw new SnsApplicationException(ErrorCode.NOT_ALLOWED_INVALID_PASSWORD, String.format("Password not allowed empty"));
+        }
         // 회원 가입 하려는 userName 으로 회원가입된 user 가 있는지
         userRepository.findByUserName(userName)
                 .ifPresent(user -> {
                     throw new SnsApplicationException(ErrorCode.DUPLICATED_USER_NAME, String.format("%s is duplicated", userName));
                 });
+
         // 회원 가입 진행 = user를 등록
         User savedUser = userRepository.save(User
                 .builder()

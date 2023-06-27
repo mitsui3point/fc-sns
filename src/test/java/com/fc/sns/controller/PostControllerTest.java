@@ -8,7 +8,6 @@ import com.fc.sns.exception.SnsApplicationException;
 import com.fc.sns.fixture.PostFixture;
 import com.fc.sns.fixture.UserFixture;
 import com.fc.sns.model.PostDto;
-import com.fc.sns.model.entity.Post;
 import com.fc.sns.service.PostService;
 import com.fc.sns.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
@@ -17,14 +16,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.ImportResource;
+import org.springframework.data.domain.Page;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithAnonymousUser;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
-
-import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -183,8 +181,6 @@ public class PostControllerTest {
     @WithAnonymousUser
     void 포스트삭제시_로그인하지않은경우() throws Exception {
         //when
-        doThrow(new SnsApplicationException(ErrorCode.INVALID_POST_PERMISSION)).when(postService).delete(eq(1L), any());
-
         mvc.perform(delete("/api/v1/posts/1")
                 ).andDo(print())
                 //then
@@ -213,5 +209,46 @@ public class PostControllerTest {
                 ).andDo(print())
                 //then
                 .andExpect(status().isNotFound());
+    }
+
+    @Test
+    @WithMockUser
+    void 피드목록() throws Exception {
+        //when
+        when(postService.list(any())).thenReturn(mock(Page.class));
+        mvc.perform(get("/api/v1/posts")
+                ).andDo(print())
+                //then
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    @WithAnonymousUser
+    void 피드목록요청시_로그인하지않은_경우() throws Exception {
+        //when
+        mvc.perform(get("/api/v1/posts")
+                ).andDo(print())
+                //then
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @WithMockUser
+    void 내_피드목록() throws Exception {
+        //when
+        when(postService.my(any(), any())).thenReturn(mock(Page.class));
+        mvc.perform(get("/api/v1/posts/my")
+                ).andDo(print())
+                //then
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    @WithAnonymousUser
+    void 내_피드목록요청시_로그인하지않은_경우() throws Exception {
+        mvc.perform(get("/api/v1/posts/my")
+                ).andDo(print())
+                //then
+                .andExpect(status().isUnauthorized());
     }
 }

@@ -115,7 +115,7 @@ function PostDetail() {
   const handleGetComments = (pageNum, event) => {
     console.log('handleGetComments');
     axios({
-      url: '/api/v1/posts/' + id + '/comments?size=5&sort=id&page=' + pageNum,
+      url: '/api/v1/posts/' + id + '/comments?size=5&sort=id,desc&page=' + pageNum,
       method: 'GET',
       headers: {
         Authorization: 'Bearer ' + localStorage.getItem('token'),

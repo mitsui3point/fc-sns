@@ -119,7 +119,7 @@ function MyPosts() {
   const handleGetPosts = (pageNum, event) => {
     console.log('handleGetPosts');
     axios({
-      url: '/api/v1/posts/my?size=5&sort=id&page=' + pageNum,
+      url: '/api/v1/posts/my?size=5&sort=id,desc&page=' + pageNum,
       method: 'GET',
       headers: {
         Authorization: 'Bearer ' + localStorage.getItem('token'),

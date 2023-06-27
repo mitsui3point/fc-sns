@@ -1,17 +1,13 @@
 package com.fc.sns.model;
 
 import com.fc.sns.model.entity.Post;
-import com.fc.sns.model.entity.User;
-import lombok.AccessLevel;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
-import javax.persistence.*;
 import java.sql.Timestamp;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@EqualsAndHashCode
 public class PostDto {
     private Long id;
 

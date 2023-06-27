@@ -94,7 +94,7 @@ function Feed() {
   const handleGetPosts = (pageNum, event) => {
     console.log('handleGetPosts');
     axios({
-      url: '/api/v1/posts?size=5&sort=id&page=' + pageNum,
+      url: '/api/v1/posts?size=5&sort=id,desc&page=' + pageNum,
       method: 'GET',
       headers: {
         Authorization: 'Bearer ' + localStorage.getItem('token'),
@@ -131,7 +131,7 @@ function Feed() {
                   </Grid>
                   <Grid item xs={6}>
                     <MDTypography variant="body2" textAlign="right">
-                      {post.user.userName}
+                      {post.user.name}
                     </MDTypography>
                   </Grid>
                 </Grid>

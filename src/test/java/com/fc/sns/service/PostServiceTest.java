@@ -4,12 +4,11 @@ import com.fc.sns.exception.ErrorCode;
 import com.fc.sns.exception.SnsApplicationException;
 import com.fc.sns.fixture.PostFixture;
 import com.fc.sns.fixture.UserFixture;
+import com.fc.sns.model.PostDto;
 import com.fc.sns.model.entity.Post;
 import com.fc.sns.model.entity.User;
-import com.fc.sns.repository.PostRepostiory;
+import com.fc.sns.repository.PostRepository;
 import com.fc.sns.repository.UserRepository;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -18,10 +17,13 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.*;
 
 import java.util.Optional;
 import java.util.stream.Stream;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -32,7 +34,7 @@ public class PostServiceTest {
     private PostService postService;
 
     @Mock
-    private PostRepostiory postRepostiory;
+    private PostRepository postRepostiory;
 
     @Mock
     private UserRepository userRepository;
@@ -45,7 +47,7 @@ public class PostServiceTest {
         when(postRepostiory.save(any())).thenReturn(post);
 
         //then
-        Assertions.assertDoesNotThrow(() -> {
+        assertDoesNotThrow(() -> {
             postService.create(post.getTitle(), post.getBody(), user.getUserName());
         });
         verify(userRepository, times(1)).findByUserName(user.getUserName());
@@ -60,10 +62,10 @@ public class PostServiceTest {
         when(userRepository.findByUserName(user.getUserName())).thenReturn(Optional.empty());
 
         //then
-        SnsApplicationException e = Assertions.assertThrows(SnsApplicationException.class, () -> {
+        SnsApplicationException e = assertThrows(SnsApplicationException.class, () -> {
             postService.create(post.getTitle(), post.getBody(), user.getUserName());
         });
-        Assertions.assertEquals(ErrorCode.USER_NOT_FOUND, e.getErrorCode());
+        assertEquals(ErrorCode.USER_NOT_FOUND, e.getErrorCode());
         verify(userRepository, times(1)).findByUserName(user.getUserName());
     }
 
@@ -76,7 +78,7 @@ public class PostServiceTest {
         doNothing().when(postRepostiory).flush();
 
         //then
-        Assertions.assertDoesNotThrow(() -> {
+        assertDoesNotThrow(() -> {
             postService.modify(post.getId(), post.getTitle(), post.getBody(), user.getUserName());
         });
         verify(userRepository, times(1)).findByUserName(user.getUserName());
@@ -91,10 +93,10 @@ public class PostServiceTest {
         when(userRepository.findByUserName(user.getUserName())).thenReturn(Optional.empty());
 
         //then
-        SnsApplicationException e = Assertions.assertThrows(SnsApplicationException.class, () -> {
+        SnsApplicationException e = assertThrows(SnsApplicationException.class, () -> {
             postService.modify(post.getId(), post.getTitle(), post.getBody(), user.getUserName());
         });
-        Assertions.assertEquals(ErrorCode.USER_NOT_FOUND, e.getErrorCode());
+        assertEquals(ErrorCode.USER_NOT_FOUND, e.getErrorCode());
         verify(userRepository, times(1)).findByUserName(user.getUserName());
     }
 
@@ -106,10 +108,10 @@ public class PostServiceTest {
         when(postRepostiory.findById(post.getId())).thenReturn(Optional.empty());
 
         //then
-        SnsApplicationException e = Assertions.assertThrows(SnsApplicationException.class, () -> {
+        SnsApplicationException e = assertThrows(SnsApplicationException.class, () -> {
             postService.modify(post.getId(), post.getTitle(), post.getBody(), user.getUserName());
         });
-        Assertions.assertEquals(ErrorCode.POST_NOT_FOUND, e.getErrorCode());
+        assertEquals(ErrorCode.POST_NOT_FOUND, e.getErrorCode());
         verify(userRepository, times(1)).findByUserName(user.getUserName());
         verify(postRepostiory, times(1)).findById(post.getId());
     }
@@ -125,10 +127,10 @@ public class PostServiceTest {
         when(postRepostiory.findById(post.getId())).thenReturn(Optional.of(post));
 
         //then
-        SnsApplicationException e = Assertions.assertThrows(SnsApplicationException.class, () -> {
+        SnsApplicationException e = assertThrows(SnsApplicationException.class, () -> {
             postService.modify(post.getId(), post.getTitle(), post.getBody(), notWriterUser.getUserName());
         });
-        Assertions.assertEquals(ErrorCode.INVALID_POST_PERMISSION, e.getErrorCode());
+        assertEquals(ErrorCode.INVALID_POST_PERMISSION, e.getErrorCode());
         verify(userRepository, times(1)).findByUserName(notWriterUser.getUserName());
         verify(postRepostiory, times(1)).findById(post.getId());
     }
@@ -143,7 +145,7 @@ public class PostServiceTest {
 //        doNothing().when(postRepostiory).delete(post);
 
         //then
-        Assertions.assertDoesNotThrow(() -> {
+        assertDoesNotThrow(() -> {
             postService.delete(post.getId(), user.getUserName());
         });
         verify(userRepository, times(1)).findByUserName(user.getUserName());
@@ -159,10 +161,10 @@ public class PostServiceTest {
         when(userRepository.findByUserName(user.getUserName())).thenReturn(Optional.empty());
 
         //then
-        SnsApplicationException e = Assertions.assertThrows(SnsApplicationException.class, () -> {
+        SnsApplicationException e = assertThrows(SnsApplicationException.class, () -> {
             postService.delete(post.getId(), user.getUserName());
         });
-        Assertions.assertEquals(ErrorCode.USER_NOT_FOUND, e.getErrorCode());
+        assertEquals(ErrorCode.USER_NOT_FOUND, e.getErrorCode());
         verify(userRepository, times(1)).findByUserName(user.getUserName());
     }
 
@@ -174,10 +176,10 @@ public class PostServiceTest {
         when(postRepostiory.findById(post.getId())).thenReturn(Optional.empty());
 
         //then
-        SnsApplicationException e = Assertions.assertThrows(SnsApplicationException.class, () -> {
+        SnsApplicationException e = assertThrows(SnsApplicationException.class, () -> {
             postService.delete(post.getId(), user.getUserName());
         });
-        Assertions.assertEquals(ErrorCode.POST_NOT_FOUND, e.getErrorCode());
+        assertEquals(ErrorCode.POST_NOT_FOUND, e.getErrorCode());
         verify(userRepository, times(1)).findByUserName(user.getUserName());
         verify(postRepostiory, times(1)).findById(post.getId());
     }
@@ -193,12 +195,48 @@ public class PostServiceTest {
         when(postRepostiory.findById(post.getId())).thenReturn(Optional.of(post));
 
         //then
-        SnsApplicationException e = Assertions.assertThrows(SnsApplicationException.class, () -> {
+        SnsApplicationException e = assertThrows(SnsApplicationException.class, () -> {
             postService.delete(post.getId(), notWriterUser.getUserName());
         });
-        Assertions.assertEquals(ErrorCode.INVALID_POST_PERMISSION, e.getErrorCode());
+        assertEquals(ErrorCode.INVALID_POST_PERMISSION, e.getErrorCode());
         verify(userRepository, times(1)).findByUserName(notWriterUser.getUserName());
         verify(postRepostiory, times(1)).findById(post.getId());
+    }
+
+    @Test
+    void 피드목록조회를_성공한_경우() {
+        //given
+        Pageable pageable = mock(Pageable.class);
+        Page page = mock(Page.class);
+
+        //when
+        when(postRepostiory.findAll(pageable)).thenReturn(page);
+
+        //then
+        assertDoesNotThrow(() -> {
+            Page<PostDto> result = postService.list(pageable);
+        });
+        verify(postRepostiory, times(1)).findAll(pageable);
+    }
+
+    @Test
+    void 내_피드목록조회를_성공한_경우() {
+        //given
+        String userName = "userName";
+        Pageable pageable = mock(Pageable.class);
+        Page page = mock(Page.class);
+        User user = mock(User.class);
+
+        //when
+        when(userRepository.findByUserName(any())).thenReturn(Optional.of(user));
+        when(postRepostiory.findAllByUser(user, pageable)).thenReturn(page);
+
+        //then
+        assertDoesNotThrow(() -> {
+            Page<PostDto> result = postService.my(userName, pageable);
+        });
+        verify(userRepository, times(1)).findByUserName(userName);
+        verify(postRepostiory, times(1)).findAllByUser(user, pageable);
     }
 
     private static Stream<Arguments> postFixtureSource() {
@@ -211,4 +249,5 @@ public class PostServiceTest {
                 )
         );
     }
+
 }

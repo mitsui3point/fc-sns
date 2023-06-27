@@ -75,7 +75,7 @@ function Alarm() {
   const handleGetAlarm = (pageNum, event) => {
     console.log('handleGetAlarm');
     axios({
-      url: '/api/v1/users/alarm?size=5&sort=id&page=' + pageNum,
+      url: '/api/v1/users/alarm?size=5&sort=id,desc&page=' + pageNum,
       method: 'GET',
       headers: {
         Authorization: 'Bearer ' + localStorage.getItem('token'),

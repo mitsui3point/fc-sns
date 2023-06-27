@@ -84,6 +84,40 @@ public class UserControllerTest {
     }
 
     @Test
+    void 회원가입시_userName_공백_or_빈값으로_회원가입을_하는경우_에러반환() throws Exception {
+        //given
+        String userName = " ";
+        String password = "password";
+
+        when(userService.join(userName, password)).thenThrow(new SnsApplicationException(ErrorCode.NOT_ALLOWED_INVALID_USER_NAME, String.format("User name not allowed empty")));
+
+        //when
+        mvc.perform(post("/api/v1/users/join")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(new UserJoinRequest(userName, password)))
+                ).andDo(print())
+                //then
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void 회원가입시_password_공백_or_빈값으로_회원가입을_하는경우_에러반환() throws Exception {
+        //given
+        String userName = "userName";
+        String password = " ";
+
+        when(userService.join(userName, password)).thenThrow(new SnsApplicationException(ErrorCode.NOT_ALLOWED_INVALID_PASSWORD, String.format("Password not allowed empty")));
+
+        //when
+        mvc.perform(post("/api/v1/users/join")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(new UserJoinRequest(userName, password)))
+                ).andDo(print())
+                //then
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
     void 로그인() throws Exception {
         //given
         String userName = "userName";

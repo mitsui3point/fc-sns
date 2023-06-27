@@ -7,6 +7,8 @@ import com.fc.sns.controller.response.Response;
 import com.fc.sns.model.PostDto;
 import com.fc.sns.service.PostService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
@@ -37,5 +39,20 @@ public class PostController {
                                  Authentication authentication) {
         postService.delete(postId, authentication.getName());
         return Response.success();
+    }
+
+    @GetMapping
+    public Response<Page<PostResponse>> list(Pageable pageable) {
+        Page<PostResponse> postResponses = postService.list(pageable)
+                .map(PostResponse::fromPostDto);
+        return Response.success(postResponses);
+    }
+
+    @GetMapping("/my")
+    public Response<Page<PostResponse>> my(Pageable pageable,
+                                           Authentication authentication) {
+        Page<PostResponse> postResponses = postService.my(authentication.getName(), pageable)
+                .map(PostResponse::fromPostDto);
+        return Response.success(postResponses);
     }
 }
