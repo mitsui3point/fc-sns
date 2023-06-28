@@ -1,7 +1,6 @@
 package com.fc.sns.exception;
 
 import com.fc.sns.controller.response.Response;
-import com.fc.sns.exception.ErrorCode;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
 
