@@ -94,7 +94,7 @@ function Feed() {
   const handleGetPosts = (pageNum, event) => {
     console.log('handleGetPosts');
     axios({
-      url: '/api/v1/posts?size=5&sort=id,desc&page=' + pageNum,
+      url: '/api/v1/posts?size=5&sort=id,desc&page=' + pageNum ?? 0,
       method: 'GET',
       headers: {
         Authorization: 'Bearer ' + localStorage.getItem('token'),

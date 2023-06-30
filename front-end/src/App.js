@@ -149,6 +149,34 @@ export default function App() {
       </Icon>
     </MDBox>
   );
+  const toggleMenu = () => {
+    if (!miniSidenav) {
+      setMiniSidenav(dispatch, true)
+      return;
+    }
+    setMiniSidenav(dispatch, false);
+  }
+  const openButton = (
+    <MDBox
+      display="flex"
+      justifyContent="center"
+      alignItems="center"
+      width="3.25rem"
+      height="3.25rem"
+      bgColor="white"
+      shadow="sm"
+      borderRadius="50%"
+      position="fixed"
+      right="2rem"
+      bottom="2rem"
+      zIndex={99}
+      color="dark"
+      sx={{ cursor: 'pointer' }}
+      onClick={toggleMenu}
+    >
+      Menu
+    </MDBox>
+  );
 
   return direction === 'rtl' ? (
     <CacheProvider value={rtlCache}>
@@ -164,6 +192,7 @@ export default function App() {
               onMouseEnter={handleOnMouseEnter}
               onMouseLeave={handleOnMouseLeave}
             />
+            {openButton}
             <Configurator />
           </>
         )}
@@ -187,6 +216,7 @@ export default function App() {
             onMouseEnter={handleOnMouseEnter}
             onMouseLeave={handleOnMouseLeave}
           />
+          {openButton}
           <Configurator />
         </>
       )}
