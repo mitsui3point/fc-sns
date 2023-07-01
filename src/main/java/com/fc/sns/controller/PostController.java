@@ -55,4 +55,18 @@ public class PostController {
                 .map(PostResponse::fromPostDto);
         return Response.success(postResponses);
     }
+
+    @PostMapping("/{postId}/likes")
+    public Response<Void> likes(@PathVariable Long postId,
+                                Authentication authentication) {
+        postService.like(postId, authentication.getName());
+        return Response.success();
+    }
+
+    @GetMapping("/{postId}/likes")
+    public Response<Integer> likeCount(@PathVariable Long postId) {
+        int count = postService.likeCount(postId);
+        return Response.success(count);
+    }
+
 }

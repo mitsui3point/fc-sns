@@ -251,4 +251,81 @@ public class PostControllerTest {
                 //then
                 .andExpect(status().isUnauthorized());
     }
+
+    @Test
+    @WithMockUser
+    void 좋아요기능() throws Exception {
+        //when
+        doNothing().when(postService).like(any(), any());
+
+        mvc.perform(post("/api/v1/posts/1/likes")
+                ).andDo(print())
+                //then
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    @WithAnonymousUser
+    void 좋아요기능요청시_로그인하지않은_경우() throws Exception {
+        mvc.perform(post("/api/v1/posts/1/likes")
+                ).andDo(print())
+                //then
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @WithMockUser
+    void 좋아요기능요청시_게시물이_없는_경우() throws Exception {
+
+        //when
+        doThrow(new SnsApplicationException(ErrorCode.POST_NOT_FOUND)).doNothing().when(postService).like(any(), any());
+
+        mvc.perform(post("/api/v1/posts/1/likes")
+                ).andDo(print())
+                //then
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    @WithMockUser
+    void 좋아요기능요청시_이미_좋아요를_한_게시물일_경우() throws Exception {
+
+        //when
+        doThrow(new SnsApplicationException(ErrorCode.ALREADY_LIKED)).doNothing().when(postService).like(any(), any());
+
+        mvc.perform(post("/api/v1/posts/1/likes")
+                ).andDo(print())
+                //then
+                .andExpect(status().isConflict());
+    }
+
+    @Test
+    @WithMockUser
+    void 좋아요갯수() throws Exception {
+        mvc.perform(get("/api/v1/posts/1/likes")
+                ).andDo(print())
+                //then
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    @WithAnonymousUser
+    void 좋아요갯수요청시_로그인하지않은_경우() throws Exception {
+        mvc.perform(get("/api/v1/posts/1/likes")
+                ).andDo(print())
+                //then
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @WithMockUser
+    void 좋아요갯수요청시_게시물이_없는_경우() throws Exception {
+        //when
+        doThrow(new SnsApplicationException(ErrorCode.POST_NOT_FOUND)).when(postService).likeCount(any());
+
+        mvc.perform(get("/api/v1/posts/1/likes")
+                ).andDo(print())
+                //then
+                .andExpect(status().isNotFound());
+    }
 }

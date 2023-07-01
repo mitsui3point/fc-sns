@@ -12,21 +12,19 @@ import java.sql.Timestamp;
 import java.time.Instant;
 
 @Entity
-@Table(name = "\"post\"")
+@Table(name = "\"like\"")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
-@SQLDelete(sql = "UPDATE \"post\" set deleted_at = NOW() where id=?")
+@SQLDelete(sql = "UPDATE \"like\" SET deleted_at = NOW() where id=?")
 @Where(clause = "deleted_at is NULL")
-public class Post {
+public class Like {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "title")
-    private String title;
-
-    @Column(name = "body", columnDefinition = "TEXT")
-    private String body;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "post_id")
+    private Post post;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
@@ -56,23 +54,9 @@ public class Post {
     }
 
     @Builder
-    public Post(Long id, String title, String body, User user) {
+    public Like(Long id, Post post, User user) {
         this.id = id;
-        this.title = title;
-        this.body = body;
+        this.post = post;
         this.user = user;
-    }
-
-    // 변경감지 메서드
-    public void changeTitle(String title) {
-        this.title = title;
-    }
-
-    public void changeBody(String body) {
-        this.body = body;
-    }
-
-    public boolean isPostWriter(User user) {
-        return this.user.equals(user);
     }
 }
