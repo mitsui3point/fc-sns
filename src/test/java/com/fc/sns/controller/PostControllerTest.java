@@ -1,6 +1,7 @@
 package com.fc.sns.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fc.sns.controller.request.PostCommentRequest;
 import com.fc.sns.controller.request.PostCreateRequest;
 import com.fc.sns.controller.request.PostModifyRequest;
 import com.fc.sns.exception.ErrorCode;
@@ -320,6 +321,7 @@ public class PostControllerTest {
     @Test
     @WithMockUser
     void 좋아요갯수요청시_게시물이_없는_경우() throws Exception {
+
         //when
         doThrow(new SnsApplicationException(ErrorCode.POST_NOT_FOUND)).when(postService).likeCount(any());
 
@@ -327,5 +329,69 @@ public class PostControllerTest {
                 ).andDo(print())
                 //then
                 .andExpect(status().isNotFound());
+    }
+
+    @Test
+    @WithMockUser
+    void 댓글등록() throws Exception {
+        //when
+        doNothing().when(postService).comment(any(), any(), any());
+        mvc.perform(post("/api/v1/posts/1/comments")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(new PostCommentRequest("comment")))
+                ).andDo(print())
+                //then
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    @WithAnonymousUser
+    void 댓글등록요청시_로그인하지않은_경우() throws Exception {
+        //when
+        doNothing().when(postService).comment(any(), any(), any());
+        mvc.perform(post("/api/v1/posts/1/comments")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(new PostCommentRequest("comment")))
+                ).andDo(print())
+                //then
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @WithMockUser
+    void 댓글등록요청시_게시물이_없는_경우() throws Exception {
+        //when
+        doThrow(new SnsApplicationException(ErrorCode.POST_NOT_FOUND)).doNothing().when(postService).comment(any(), any(), any());
+
+        mvc.perform(post("/api/v1/posts/1/comments")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(new PostCommentRequest("comment")))
+                ).andDo(print())
+                //then
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    @WithMockUser
+    void 댓글목록() throws Exception {
+        //when
+        when(postService.getComments(any(), any())).thenReturn(mock(Page.class));
+        mvc.perform(get("/api/v1/posts/1/comments")
+                        .queryParam("size","5")
+                        .queryParam("sort","id")
+                        .queryParam("page","0")
+                ).andDo(print())
+                //then
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    @WithAnonymousUser
+    void 댓글목록요청시_로그인하지않은_경우() throws Exception {
+        //when
+        mvc.perform(get("/api/v1/posts/1/comments")
+                ).andDo(print())
+                //then
+                .andExpect(status().isUnauthorized());
     }
 }

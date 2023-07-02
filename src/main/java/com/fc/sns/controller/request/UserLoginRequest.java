@@ -9,4 +9,8 @@ public class UserLoginRequest {
     private final String name;
     private final String password;
 
+    protected UserLoginRequest(String name) {
+        this.name = null;
+        this.password = null;
+    }
 }

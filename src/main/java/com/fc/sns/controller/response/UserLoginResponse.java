@@ -5,7 +5,6 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
 public class UserLoginResponse {
     private String token;
@@ -13,6 +12,10 @@ public class UserLoginResponse {
     @Builder
     public UserLoginResponse(String token) {
         this.token = token;
+    }
+
+    protected UserLoginResponse() {
+        this.token = null;
     }
 
     public static UserLoginResponse fromToken(String token) {

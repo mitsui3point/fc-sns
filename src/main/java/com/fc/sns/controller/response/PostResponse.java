@@ -1,29 +1,26 @@
 package com.fc.sns.controller.response;
 
 import com.fc.sns.model.PostDto;
-import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 import java.sql.Timestamp;
 
 @Getter
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class PostResponse {
-    private Long id;
+    private final Long id;
 
-    private String title;
+    private final String title;
 
-    private String body;
+    private final String body;
 
-    private UserResponse user;
+    private final UserResponse user;
 
-    private Timestamp registeredAt;
+    private final Timestamp registeredAt;
 
-    private Timestamp updatedAt;
+    private final Timestamp updatedAt;
 
-    private Timestamp deletedAt;
+    private final Timestamp deletedAt;
 
     @Builder
     public PostResponse(Long id, String title, String body, UserResponse user, Timestamp registeredAt, Timestamp updatedAt, Timestamp deletedAt) {
@@ -34,6 +31,16 @@ public class PostResponse {
         this.registeredAt = registeredAt;
         this.updatedAt = updatedAt;
         this.deletedAt = deletedAt;
+    }
+
+    protected PostResponse() {
+        this.id = null;
+        this.title = null;
+        this.body = null;
+        this.user = null;
+        this.registeredAt = null;
+        this.updatedAt = null;
+        this.deletedAt = null;
     }
 
     public static PostResponse fromPostDto(PostDto postDto) {

@@ -2,13 +2,17 @@ package com.fc.sns.service;
 
 import com.fc.sns.exception.ErrorCode;
 import com.fc.sns.exception.SnsApplicationException;
+import com.fc.sns.fixture.CommentFixture;
 import com.fc.sns.fixture.LikeFixture;
 import com.fc.sns.fixture.PostFixture;
 import com.fc.sns.fixture.UserFixture;
+import com.fc.sns.model.CommentDto;
 import com.fc.sns.model.PostDto;
+import com.fc.sns.model.entity.Comment;
 import com.fc.sns.model.entity.Like;
 import com.fc.sns.model.entity.Post;
 import com.fc.sns.model.entity.User;
+import com.fc.sns.repository.CommentRepository;
 import com.fc.sns.repository.LikeRepository;
 import com.fc.sns.repository.PostRepository;
 import com.fc.sns.repository.UserRepository;
@@ -44,6 +48,10 @@ public class PostServiceTest {
 
     @Mock
     private LikeRepository likeRepository;
+
+    @Mock
+    private CommentRepository commentRepository;
+
 
     @ParameterizedTest
     @MethodSource("postFixtureSource")
@@ -340,6 +348,73 @@ public class PostServiceTest {
         assertEquals(ErrorCode.POST_NOT_FOUND, e.getErrorCode());
         verify(postRepository, times(1)).findById(post.getId());
     }
+
+    @ParameterizedTest
+    @MethodSource("commentFixtureSource")
+    void 댓글등록을_성공한_경우(User user, Post post, Comment comment) {
+        //when
+        when(userRepository.findByUserName(user.getUserName())).thenReturn(Optional.of(user));
+        when(postRepository.findById(post.getId())).thenReturn(Optional.of(post));
+        when(commentRepository.save(any())).thenReturn(comment);
+
+        //then
+        assertDoesNotThrow(() -> {
+            postService.comment(comment.getComment(), post.getId(), user.getUserName());
+        });
+        verify(userRepository, times(1)).findByUserName(user.getUserName());
+        verify(postRepository, times(1)).findById(post.getId());
+        verify(commentRepository, times(1)).save(any());
+    }
+
+    @ParameterizedTest
+    @MethodSource("commentFixtureSource")
+    void 댓글등록_요청한_유저가_존재하지_않는_경우(User user, Post post, Comment comment) {
+        //when
+        when(userRepository.findByUserName(user.getUserName())).thenReturn(Optional.empty());
+
+        //then
+        SnsApplicationException e = assertThrows(SnsApplicationException.class, () -> {
+            postService.comment(comment.getComment(), post.getId(), user.getUserName());
+        });
+        assertEquals(ErrorCode.USER_NOT_FOUND, e.getErrorCode());
+        verify(userRepository, times(1)).findByUserName(user.getUserName());
+    }
+
+    @ParameterizedTest
+    @MethodSource("commentFixtureSource")
+    void 댓글등록_작성한_글이_존재하지_않는_경우(User user, Post post, Comment comment) {
+        //when
+        when(userRepository.findByUserName(user.getUserName())).thenReturn(Optional.of(user));
+        when(postRepository.findById(post.getId())).thenReturn(Optional.empty());
+
+        //then
+        SnsApplicationException e = assertThrows(SnsApplicationException.class, () -> {
+            postService.comment(comment.getComment(), post.getId(), user.getUserName());
+        });
+        assertEquals(ErrorCode.POST_NOT_FOUND, e.getErrorCode());
+        verify(userRepository, times(1)).findByUserName(user.getUserName());
+        verify(postRepository, times(1)).findById(post.getId());
+    }
+
+    @Test
+    void 댓글목록조회를_성공한_경우() {
+        //given
+        Pageable pageable = mock(Pageable.class);
+        Page page = mock(Page.class);
+        User user = UserFixture.get("userName", "user", 1L);
+        Post post = PostFixture.get("title", "body", user, 1L);
+
+        //when
+        when(postRepository.findById(post.getId())).thenReturn(Optional.of(post));
+        when(commentRepository.findAllByPost(pageable, post)).thenReturn(mock(Page.class));
+        //then
+        assertDoesNotThrow(() -> {
+            Page<CommentDto> result = postService.getComments(post.getId(), pageable);
+        });
+        verify(postRepository, times(1)).findById(post.getId());
+        verify(commentRepository, times(1)).findAllByPost(pageable, post);
+    }
+
     private static Stream<Arguments> postFixtureSource() {
         User userFixture = UserFixture.get("userName", "password", 1L);
         Post postFixture = PostFixture.get("title", "body", userFixture, 1L);
@@ -362,5 +437,16 @@ public class PostServiceTest {
                 )
         );
     }
-
+    private static Stream<Arguments> commentFixtureSource() {
+        User userFixture = UserFixture.get("userName", "password", 1L);
+        Post postFixture = PostFixture.get("title", "body", userFixture, 1L);
+        Comment commentFixture = CommentFixture.get(userFixture, postFixture, "content",1L);
+        return Stream.of(
+                Arguments.of(
+                        userFixture,
+                        postFixture,
+                        commentFixture
+                )
+        );
+    }
 }
