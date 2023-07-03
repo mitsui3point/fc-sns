@@ -77,9 +77,8 @@ public class UserService {
                 .orElseThrow(() -> new SnsApplicationException(ErrorCode.USER_NOT_FOUND, String.format("%s is not founded", userName)));
     }
 
-    public Page<AlarmDto> alarms(String userName, Pageable pageable) {
-        User user = getUserOrException(userName);
-        return alarmRepository.findAllByUser(user, pageable)
+    public Page<AlarmDto> alarms(Long userId, Pageable pageable) {
+        return alarmRepository.findAllByUserId(userId, pageable)
                 .map(AlarmDto::fromAlarm);
     }
 

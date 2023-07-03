@@ -15,6 +15,8 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.ImportResource;
 import org.springframework.data.domain.Page;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.test.context.support.WithAnonymousUser;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
@@ -174,10 +176,10 @@ public class UserControllerTest {
     }
 
     @Test
-    @WithMockUser
     void 알람기능() throws Exception {
         when(userService.alarms(any(), any())).thenReturn(Page.empty());
-        mvc.perform(get("/api/v1/users/alarms")
+        setAuthentication();
+        mvc.perform(get("/api/v1/users/alarm")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andDo(print())
                 .andExpect(status().isOk());
@@ -187,9 +189,18 @@ public class UserControllerTest {
     @WithAnonymousUser
     void 알람기능요청시_로그인하지_않은_경우() throws Exception {
         when(userService.alarms(any(), any())).thenReturn(Page.empty());
-        mvc.perform(get("/api/v1/users/alarms")
+        mvc.perform(get("/api/v1/users/alarm")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andDo(print())
                 .andExpect(status().isUnauthorized());
+    }
+
+    private void setAuthentication() {
+        UserDto userDto = mock(UserDto.class);
+        SecurityContextHolder.getContext().setAuthentication(new UsernamePasswordAuthenticationToken(
+                userDto,
+                null,
+                userDto.getAuthorities()
+        ));
     }
 }

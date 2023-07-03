@@ -394,4 +394,5 @@ public class PostControllerTest {
                 //then
                 .andExpect(status().isUnauthorized());
     }
+
 }

@@ -176,16 +176,13 @@ class UserServiceTest {
         Page page = mock(Page.class);
         Pageable pageable = mock(Pageable.class);
 
-        //TODO: to complete test
-        when(userRepository.findByUserName(user.getUserName())).thenReturn(Optional.of(user));
-        when(alarmRepository.findAllByUser(user, pageable)).thenReturn(page);
+        when(alarmRepository.findAllByUserId(user.getId(), pageable)).thenReturn(page);
         Assertions.assertDoesNotThrow(() -> {
-            userService.alarms(user.getUserName(), pageable);
+            userService.alarms(user.getId(), pageable);
         });
 
         //then
-        verify(userRepository, times(1)).findByUserName(user.getUserName());
-        verify(alarmRepository, times(1)).findAllByUser(user, pageable);
+        verify(alarmRepository, times(1)).findAllByUserId(user.getId(), pageable);
     }
 
     private static Stream<Arguments> userFixtureSource() {

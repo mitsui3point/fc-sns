@@ -9,7 +9,6 @@ import com.fc.sns.model.entity.*;
 import com.fc.sns.model.json.AlarmArgs;
 import com.fc.sns.repository.*;
 import lombok.RequiredArgsConstructor;
-import org.hibernate.Session;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -64,12 +63,14 @@ public class PostService {
             throw new SnsApplicationException(ErrorCode.INVALID_POST_PERMISSION, String.format("%s has no permission with %s", userName, post.getId()));
         }
 
+        likeRepository.deleteAllByPost(post);
+        commentRepository.deleteAllByPost(post);
         post.deletedAt();
         postRepository.flush();
     }
 
     public Page<PostDto> list(Pageable pageable) {
-        return postRepository.findAll(pageable)
+        return postRepository.findFetchUserAll(pageable)
                 .map(PostDto::fromEntity);
     }
 
@@ -106,7 +107,7 @@ public class PostService {
                         .build());
     }
 
-    public int likeCount(Long postId) {
+    public long likeCount(Long postId) {
         Post post = getPostOrException(postId);
         return likeRepository.countByPost(post);
     }

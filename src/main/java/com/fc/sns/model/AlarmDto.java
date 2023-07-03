@@ -5,13 +5,15 @@ import com.fc.sns.model.entity.Alarm;
 import com.fc.sns.model.json.AlarmArgs;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
 import java.sql.Timestamp;
 
 @Getter
+@Slf4j
 public class AlarmDto {
     private final Long id;
-    private final UserDto user;
+//    private final UserDto user;
     private final AlarmType type;
     private final AlarmArgs args;
     private final Timestamp registeredAt;
@@ -20,7 +22,6 @@ public class AlarmDto {
 
     protected AlarmDto() {
         this.id = null;
-        this.user = null;
         this.type = null;
         this.args = null;
         this.registeredAt = null;
@@ -29,9 +30,8 @@ public class AlarmDto {
     }
 
     @Builder
-    public AlarmDto(Long id, UserDto user, AlarmType type, AlarmArgs args, Timestamp registeredAt, Timestamp updatedAt, Timestamp deletedAt) {
+    public AlarmDto(Long id, AlarmType type, AlarmArgs args, Timestamp registeredAt, Timestamp updatedAt, Timestamp deletedAt) {
         this.id = id;
-        this.user = user;
         this.type = type;
         this.args = args;
         this.registeredAt = registeredAt;
@@ -42,7 +42,6 @@ public class AlarmDto {
     public static AlarmDto fromAlarm(Alarm alarm) {
         return AlarmDto.builder()
                 .id(alarm.getId())
-                .user(UserDto.fromEntity(alarm.getUser()))
                 .type(alarm.getType())
                 .args(alarm.getArgs())
                 .registeredAt(alarm.getRegisteredAt())

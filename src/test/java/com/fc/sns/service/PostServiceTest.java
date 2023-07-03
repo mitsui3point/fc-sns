@@ -151,8 +151,10 @@ public class PostServiceTest {
         //when
         when(userRepository.findByUserName(user.getUserName())).thenReturn(Optional.of(user));
         when(postRepository.findById(post.getId())).thenReturn(Optional.of(post));
+        doNothing().when(likeRepository).deleteAllByPost(post);
+        doNothing().when(commentRepository).deleteAllByPost(post);
         doNothing().when(postRepository).flush();
-//        doNothing().when(postRepostiory).delete(post);
+        //doNothing().when(postRepostiory).delete(post);
 
         //then
         assertDoesNotThrow(() -> {
@@ -160,6 +162,8 @@ public class PostServiceTest {
         });
         verify(userRepository, times(1)).findByUserName(user.getUserName());
         verify(postRepository, times(1)).findById(post.getId());
+        verify(likeRepository, times(1)).deleteAllByPost(post);
+        verify(commentRepository, times(1)).deleteAllByPost(post);
         verify(postRepository, times(1)).flush();
     }
 
@@ -219,13 +223,13 @@ public class PostServiceTest {
         Page page = mock(Page.class);
 
         //when
-        when(postRepository.findAll(pageable)).thenReturn(page);
+        when(postRepository.findFetchUserAll(pageable)).thenReturn(page);
 
         //then
         assertDoesNotThrow(() -> {
             Page<PostDto> result = postService.list(pageable);
         });
-        verify(postRepository, times(1)).findAll(pageable);
+        verify(postRepository, times(1)).findFetchUserAll(pageable);
     }
 
     @Test
@@ -322,11 +326,11 @@ public class PostServiceTest {
     void 좋아요갯수_조회_성공한_경우(User likeUser, Post post, Like like, Alarm alarm) {
         //when
         when(postRepository.findById(post.getId())).thenReturn(Optional.of(post));
-        when(likeRepository.countByPost(post)).thenReturn(2);
+        when(likeRepository.countByPost(post)).thenReturn(2L);
 
         //then
         assertDoesNotThrow(() -> {
-            int count = postService.likeCount(post.getId());
+            long count = postService.likeCount(post.getId());
             assertEquals(count, 2);
         });
         verify(postRepository, times(1)).findById(post.getId());
