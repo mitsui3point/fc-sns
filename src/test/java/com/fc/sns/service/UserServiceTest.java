@@ -5,6 +5,7 @@ import com.fc.sns.exception.SnsApplicationException;
 import com.fc.sns.fixture.UserFixture;
 import com.fc.sns.model.UserDto;
 import com.fc.sns.model.entity.User;
+import com.fc.sns.repository.AlarmRepository;
 import com.fc.sns.repository.UserRepository;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -16,6 +17,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import java.util.Optional;
@@ -36,6 +39,9 @@ class UserServiceTest {
 
     @MockBean
     private BCryptPasswordEncoder encoder;
+
+    @MockBean
+    private AlarmRepository alarmRepository;
 
     @ParameterizedTest
     @MethodSource("userFixtureSource")
@@ -161,6 +167,25 @@ class UserServiceTest {
         });
         Assertions.assertEquals(ErrorCode.USER_NOT_FOUND, e.getErrorCode());
         verify(userRepository, times(1)).findByUserName(user.getUserName());
+    }
+
+    @ParameterizedTest
+    @MethodSource("userFixtureSource")
+    void 알람목록(User user) {
+        //when
+        Page page = mock(Page.class);
+        Pageable pageable = mock(Pageable.class);
+
+        //TODO: to complete test
+        when(userRepository.findByUserName(user.getUserName())).thenReturn(Optional.of(user));
+        when(alarmRepository.findAllByUser(user, pageable)).thenReturn(page);
+        Assertions.assertDoesNotThrow(() -> {
+            userService.alarms(user.getUserName(), pageable);
+        });
+
+        //then
+        verify(userRepository, times(1)).findByUserName(user.getUserName());
+        verify(alarmRepository, times(1)).findAllByUser(user, pageable);
     }
 
     private static Stream<Arguments> userFixtureSource() {

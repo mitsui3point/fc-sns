@@ -1,18 +1,15 @@
 package com.fc.sns.service;
 
+import com.fc.sns.enums.AlarmType;
 import com.fc.sns.exception.ErrorCode;
 import com.fc.sns.exception.SnsApplicationException;
 import com.fc.sns.model.CommentDto;
 import com.fc.sns.model.PostDto;
-import com.fc.sns.model.entity.Comment;
-import com.fc.sns.model.entity.Like;
-import com.fc.sns.model.entity.Post;
-import com.fc.sns.model.entity.User;
-import com.fc.sns.repository.CommentRepository;
-import com.fc.sns.repository.LikeRepository;
-import com.fc.sns.repository.PostRepository;
-import com.fc.sns.repository.UserRepository;
+import com.fc.sns.model.entity.*;
+import com.fc.sns.model.json.AlarmArgs;
+import com.fc.sns.repository.*;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.Session;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -26,6 +23,7 @@ public class PostService {
     private final UserRepository userRepository;
     private final LikeRepository likeRepository;
     private final CommentRepository commentRepository;
+    private final AlarmRepository alarmRepository;
 
     @Transactional
     public void create(String title, String body, String userName) {
@@ -91,7 +89,21 @@ public class PostService {
             throw new SnsApplicationException(ErrorCode.ALREADY_LIKED, String.format("userName %s is already like post %d", userName, postId));
         });
 
-        likeRepository.save(Like.builder().post(post).user(user).build());
+        likeRepository.save(
+                Like.builder()
+                        .post(post)
+                        .user(user)
+                        .build());
+
+        alarmRepository.save(
+                Alarm.builder()
+                        .type(AlarmType.NEW_LIKE_ON_POST)
+                        .user(post.getUser())
+                        .args(AlarmArgs.builder()
+                                .fromUserId(user.getId())
+                                .targetId(post.getUser().getId())
+                                .build())
+                        .build());
     }
 
     public int likeCount(Long postId) {
@@ -111,6 +123,16 @@ public class PostService {
                         .comment(comment)
                         .user(user)
                         .post(post)
+                        .build());
+
+        alarmRepository.save(
+                Alarm.builder()
+                        .type(AlarmType.NEW_COMMENT_ON_POST)
+                        .user(post.getUser())
+                        .args(AlarmArgs.builder()
+                                .fromUserId(user.getId())
+                                .targetId(post.getUser().getId())
+                                .build())
                         .build());
     }
 

@@ -2,11 +2,15 @@ package com.fc.sns.service;
 
 import com.fc.sns.exception.ErrorCode;
 import com.fc.sns.exception.SnsApplicationException;
+import com.fc.sns.model.AlarmDto;
 import com.fc.sns.model.UserDto;
 import com.fc.sns.model.entity.User;
+import com.fc.sns.repository.AlarmRepository;
 import com.fc.sns.repository.UserRepository;
 import com.fc.sns.util.JwtTokenUtils;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,12 +23,14 @@ public class UserService {
     private final BCryptPasswordEncoder encoder;
     private final String secretKey;
     private final Long expiredTimeMs;
+    private final AlarmRepository alarmRepository;
 
-    public UserService(UserRepository userRepository, BCryptPasswordEncoder encoder, @Value("${jwt.secret-key}") String secretKey, @Value("${jwt.token-expired-time-ms}") Long expiredTimeMs) {
+    public UserService(UserRepository userRepository, BCryptPasswordEncoder encoder, @Value("${jwt.secret-key}") String secretKey, @Value("${jwt.token-expired-time-ms}") Long expiredTimeMs, AlarmRepository alarmRepository) {
         this.userRepository = userRepository;
         this.encoder = encoder;
         this.secretKey = secretKey;
         this.expiredTimeMs = expiredTimeMs;
+        this.alarmRepository = alarmRepository;
     }
 
     @Transactional
@@ -54,9 +60,7 @@ public class UserService {
 
     public String login(String userName, String password) {
         // 회원가입 여부 체크
-        User user = userRepository.findByUserName(userName).orElseThrow(() -> {
-            throw new SnsApplicationException(ErrorCode.USER_NOT_FOUND, String.format("%s is not founded", userName));
-        });
+        User user = getUserOrException(userName);
 
         // 비밀번호 체크
         if (!encoder.matches(password, user.getPassword())) {
@@ -73,4 +77,15 @@ public class UserService {
                 .orElseThrow(() -> new SnsApplicationException(ErrorCode.USER_NOT_FOUND, String.format("%s is not founded", userName)));
     }
 
+    public Page<AlarmDto> alarms(String userName, Pageable pageable) {
+        User user = getUserOrException(userName);
+        return alarmRepository.findAllByUser(user, pageable)
+                .map(AlarmDto::fromAlarm);
+    }
+
+    private User getUserOrException(String userName) {
+        return userRepository.findByUserName(userName).orElseThrow(() -> {
+            throw new SnsApplicationException(ErrorCode.USER_NOT_FOUND, String.format("%s is not founded", userName));
+        });
+    }
 }

@@ -1,21 +1,14 @@
 package com.fc.sns.service;
 
+import com.fc.sns.enums.AlarmType;
 import com.fc.sns.exception.ErrorCode;
 import com.fc.sns.exception.SnsApplicationException;
-import com.fc.sns.fixture.CommentFixture;
-import com.fc.sns.fixture.LikeFixture;
-import com.fc.sns.fixture.PostFixture;
-import com.fc.sns.fixture.UserFixture;
+import com.fc.sns.fixture.*;
 import com.fc.sns.model.CommentDto;
 import com.fc.sns.model.PostDto;
-import com.fc.sns.model.entity.Comment;
-import com.fc.sns.model.entity.Like;
-import com.fc.sns.model.entity.Post;
-import com.fc.sns.model.entity.User;
-import com.fc.sns.repository.CommentRepository;
-import com.fc.sns.repository.LikeRepository;
-import com.fc.sns.repository.PostRepository;
-import com.fc.sns.repository.UserRepository;
+import com.fc.sns.model.entity.*;
+import com.fc.sns.model.json.AlarmArgs;
+import com.fc.sns.repository.*;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -51,6 +44,9 @@ public class PostServiceTest {
 
     @Mock
     private CommentRepository commentRepository;
+
+    @Mock
+    private AlarmRepository alarmRepository;
 
 
     @ParameterizedTest
@@ -254,74 +250,76 @@ public class PostServiceTest {
 
     @ParameterizedTest
     @MethodSource("likeFixtureSource")
-    void 좋아요를_성공한_경우(User user, Post post, Like like) {
+    void 좋아요를_성공한_경우(User likeUser, Post post, Like like, Alarm alarm) {
         //when
-        when(userRepository.findByUserName(user.getUserName())).thenReturn(Optional.of(user));
+        when(userRepository.findByUserName(likeUser.getUserName())).thenReturn(Optional.of(likeUser));
         when(postRepository.findById(post.getId())).thenReturn(Optional.of(post));
-        when(likeRepository.findByUserAndPost(user, post)).thenReturn(Optional.empty());
+        when(likeRepository.findByUserAndPost(likeUser, post)).thenReturn(Optional.empty());
         when(likeRepository.save(any())).thenReturn(like);
+        when(alarmRepository.save(any())).thenReturn(alarm);
 
         //then
         assertDoesNotThrow(() -> {
-            postService.like(post.getId(), user.getUserName());
+            postService.like(post.getId(), likeUser.getUserName());
         });
-        verify(userRepository, times(1)).findByUserName(user.getUserName());
+        verify(userRepository, times(1)).findByUserName(likeUser.getUserName());
         verify(postRepository, times(1)).findById(post.getId());
-        verify(likeRepository, times(1)).findByUserAndPost(user, post);
+        verify(likeRepository, times(1)).findByUserAndPost(likeUser, post);
         verify(likeRepository, times(1)).save(any());
+        verify(alarmRepository, times(1)).save(any());
     }
 
     @ParameterizedTest
     @MethodSource("likeFixtureSource")
-    void 좋아요_요청한_유저가_존재하지_않는_경우(User user, Post post, Like like) {
+    void 좋아요_요청한_유저가_존재하지_않는_경우(User likeUser, Post post, Like like, Alarm alarm) {
         //when
-        when(userRepository.findByUserName(user.getUserName())).thenReturn(Optional.empty());
+        when(userRepository.findByUserName(likeUser.getUserName())).thenReturn(Optional.empty());
 
         //then
         SnsApplicationException e = assertThrows(SnsApplicationException.class, () -> {
-            postService.like(post.getId(), user.getUserName());
+            postService.like(post.getId(), likeUser.getUserName());
         });
         assertEquals(ErrorCode.USER_NOT_FOUND, e.getErrorCode());
-        verify(userRepository, times(1)).findByUserName(user.getUserName());
+        verify(userRepository, times(1)).findByUserName(likeUser.getUserName());
     }
 
     @ParameterizedTest
     @MethodSource("likeFixtureSource")
-    void 좋아요_작성한_글이_존재하지_않는_경우(User user, Post post, Like like) {
+    void 좋아요_작성한_글이_존재하지_않는_경우(User likeUser, Post post, Like like, Alarm alarm) {
         //when
-        when(userRepository.findByUserName(user.getUserName())).thenReturn(Optional.of(user));
+        when(userRepository.findByUserName(likeUser.getUserName())).thenReturn(Optional.of(likeUser));
         when(postRepository.findById(post.getId())).thenReturn(Optional.empty());
 
         //then
         SnsApplicationException e = assertThrows(SnsApplicationException.class, () -> {
-            postService.like(post.getId(), user.getUserName());
+            postService.like(post.getId(), likeUser.getUserName());
         });
         assertEquals(ErrorCode.POST_NOT_FOUND, e.getErrorCode());
-        verify(userRepository, times(1)).findByUserName(user.getUserName());
+        verify(userRepository, times(1)).findByUserName(likeUser.getUserName());
         verify(postRepository, times(1)).findById(post.getId());
     }
 
     @ParameterizedTest
     @MethodSource("likeFixtureSource")
-    void 좋아요_이미_누른_경우(User user, Post post, Like like) {
+    void 좋아요_이미_누른_경우(User likeUser, Post post, Like like, Alarm alarm) {
         //when
-        when(userRepository.findByUserName(user.getUserName())).thenReturn(Optional.of(user));
+        when(userRepository.findByUserName(likeUser.getUserName())).thenReturn(Optional.of(likeUser));
         when(postRepository.findById(post.getId())).thenReturn(Optional.of(post));
-        when(likeRepository.findByUserAndPost(user, post)).thenReturn(Optional.of(like));
+        when(likeRepository.findByUserAndPost(likeUser, post)).thenReturn(Optional.of(like));
 
         //then
         SnsApplicationException e = assertThrows(SnsApplicationException.class, () -> {
-            postService.like(post.getId(), user.getUserName());
+            postService.like(post.getId(), likeUser.getUserName());
         });
         assertEquals(ErrorCode.ALREADY_LIKED, e.getErrorCode());
-        verify(userRepository, times(1)).findByUserName(user.getUserName());
+        verify(userRepository, times(1)).findByUserName(likeUser.getUserName());
         verify(postRepository, times(1)).findById(post.getId());
-        verify(likeRepository, times(1)).findByUserAndPost(user, post);
+        verify(likeRepository, times(1)).findByUserAndPost(likeUser, post);
     }
 
     @ParameterizedTest
     @MethodSource("likeFixtureSource")
-    void 좋아요갯수_조회_성공한_경우(User user, Post post, Like like) {
+    void 좋아요갯수_조회_성공한_경우(User likeUser, Post post, Like like, Alarm alarm) {
         //when
         when(postRepository.findById(post.getId())).thenReturn(Optional.of(post));
         when(likeRepository.countByPost(post)).thenReturn(2);
@@ -337,7 +335,7 @@ public class PostServiceTest {
 
     @ParameterizedTest
     @MethodSource("likeFixtureSource")
-    void 좋아요갯수_조회한_글이_존재하지_않는_경우(User user, Post post, Like like) {
+    void 좋아요갯수_조회한_글이_존재하지_않는_경우(User likeUser, Post post, Like like, Alarm alarm) {
         //when
         when(postRepository.findById(post.getId())).thenReturn(Optional.empty());
 
@@ -351,48 +349,50 @@ public class PostServiceTest {
 
     @ParameterizedTest
     @MethodSource("commentFixtureSource")
-    void 댓글등록을_성공한_경우(User user, Post post, Comment comment) {
+    void 댓글등록을_성공한_경우(User commentUser, Post post, Comment comment, Alarm alarm) {
         //when
-        when(userRepository.findByUserName(user.getUserName())).thenReturn(Optional.of(user));
+        when(userRepository.findByUserName(commentUser.getUserName())).thenReturn(Optional.of(commentUser));
         when(postRepository.findById(post.getId())).thenReturn(Optional.of(post));
         when(commentRepository.save(any())).thenReturn(comment);
+        when(alarmRepository.save(any())).thenReturn(alarm);
 
         //then
         assertDoesNotThrow(() -> {
-            postService.comment(comment.getComment(), post.getId(), user.getUserName());
+            postService.comment(comment.getComment(), post.getId(), commentUser.getUserName());
         });
-        verify(userRepository, times(1)).findByUserName(user.getUserName());
+        verify(userRepository, times(1)).findByUserName(commentUser.getUserName());
         verify(postRepository, times(1)).findById(post.getId());
         verify(commentRepository, times(1)).save(any());
+        verify(alarmRepository, times(1)).save(any());
     }
 
     @ParameterizedTest
     @MethodSource("commentFixtureSource")
-    void 댓글등록_요청한_유저가_존재하지_않는_경우(User user, Post post, Comment comment) {
+    void 댓글등록_요청한_유저가_존재하지_않는_경우(User commentUser, Post post, Comment comment, Alarm alarm) {
         //when
-        when(userRepository.findByUserName(user.getUserName())).thenReturn(Optional.empty());
+        when(userRepository.findByUserName(commentUser.getUserName())).thenReturn(Optional.empty());
 
         //then
         SnsApplicationException e = assertThrows(SnsApplicationException.class, () -> {
-            postService.comment(comment.getComment(), post.getId(), user.getUserName());
+            postService.comment(comment.getComment(), post.getId(), commentUser.getUserName());
         });
         assertEquals(ErrorCode.USER_NOT_FOUND, e.getErrorCode());
-        verify(userRepository, times(1)).findByUserName(user.getUserName());
+        verify(userRepository, times(1)).findByUserName(commentUser.getUserName());
     }
 
     @ParameterizedTest
     @MethodSource("commentFixtureSource")
-    void 댓글등록_작성한_글이_존재하지_않는_경우(User user, Post post, Comment comment) {
+    void 댓글등록_작성한_글이_존재하지_않는_경우(User commentUser, Post post, Comment comment, Alarm alarm) {
         //when
-        when(userRepository.findByUserName(user.getUserName())).thenReturn(Optional.of(user));
+        when(userRepository.findByUserName(commentUser.getUserName())).thenReturn(Optional.of(commentUser));
         when(postRepository.findById(post.getId())).thenReturn(Optional.empty());
 
         //then
         SnsApplicationException e = assertThrows(SnsApplicationException.class, () -> {
-            postService.comment(comment.getComment(), post.getId(), user.getUserName());
+            postService.comment(comment.getComment(), post.getId(), commentUser.getUserName());
         });
         assertEquals(ErrorCode.POST_NOT_FOUND, e.getErrorCode());
-        verify(userRepository, times(1)).findByUserName(user.getUserName());
+        verify(userRepository, times(1)).findByUserName(commentUser.getUserName());
         verify(postRepository, times(1)).findById(post.getId());
     }
 
@@ -426,26 +426,46 @@ public class PostServiceTest {
         );
     }
     private static Stream<Arguments> likeFixtureSource() {
-        User userFixture = UserFixture.get("userName", "password", 1L);
-        Post postFixture = PostFixture.get("title", "body", userFixture, 1L);
-        Like likeFixture = LikeFixture.get(postFixture, userFixture, 1L);
+        User postUserFixture = UserFixture.get("userName", "password", 1L);
+        Post postFixture = PostFixture.get("title", "body", postUserFixture, 1L);
+
+        User likeUserFixture = UserFixture.get("likeUserName", "p", 2L);
+        Like likeFixture = LikeFixture.get(postFixture, likeUserFixture, 1L);
+
+        Alarm alarmFixture = AlarmFixture.get(1L, postUserFixture, AlarmType.NEW_LIKE_ON_POST,
+                AlarmArgs.builder()
+                        .fromUserId(postFixture.getUser().getId())
+                        .targetId(likeUserFixture.getId())
+                        .build()
+        );
         return Stream.of(
                 Arguments.of(
-                        userFixture,
+                        likeUserFixture,
                         postFixture,
-                        likeFixture
+                        likeFixture,
+                        alarmFixture
                 )
         );
     }
     private static Stream<Arguments> commentFixtureSource() {
-        User userFixture = UserFixture.get("userName", "password", 1L);
-        Post postFixture = PostFixture.get("title", "body", userFixture, 1L);
-        Comment commentFixture = CommentFixture.get(userFixture, postFixture, "content",1L);
+        User postUserFixture = UserFixture.get("userName", "password", 1L);
+        Post postFixture = PostFixture.get("title", "body", postUserFixture, 1L);
+
+        User commentUserFixture = UserFixture.get("commentUserName", "password", 2L);
+        Comment commentFixture = CommentFixture.get(commentUserFixture, postFixture, "content",1L);
+
+        Alarm alarmFixture = AlarmFixture.get(1L, postUserFixture, AlarmType.NEW_LIKE_ON_POST,
+                AlarmArgs.builder()
+                        .fromUserId(postFixture.getUser().getId())
+                        .targetId(commentUserFixture.getId())
+                        .build()
+        );
         return Stream.of(
                 Arguments.of(
-                        userFixture,
+                        commentUserFixture,
                         postFixture,
-                        commentFixture
+                        commentFixture,
+                        alarmFixture
                 )
         );
     }
