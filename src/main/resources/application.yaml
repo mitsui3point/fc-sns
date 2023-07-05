@@ -20,3 +20,6 @@ jwt:
   secret-key: ${JWT_SECRET_KEY}
   # 30 Days
   token-expired-time-ms: 2592000000
+
+spring.redis:
+  url: ${REDIS_URL}

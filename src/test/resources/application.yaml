@@ -18,3 +18,9 @@ spring.datasource:
 jwt:
   secret-key: test.key_test.key_test.key_test.key
   token-expired-time-ms: 2592000000
+
+# RedisProperties
+spring.redis:
+  host: 127.0.0.1
+  port: 6379
+#  url: ${REDIS_URL}

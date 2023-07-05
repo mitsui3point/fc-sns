@@ -1,6 +1,8 @@
 package com.fc.sns.model;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fc.sns.enums.UserRole;
 import com.fc.sns.model.entity.User;
 import lombok.*;
@@ -15,9 +17,11 @@ import java.util.List;
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @EqualsAndHashCode
+@ToString
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class UserDto implements UserDetails {
     private Long id;
-    private String userName;
+    private String username;
     private String password;
     private UserRole role;
     private Timestamp registeredAt;
@@ -25,9 +29,9 @@ public class UserDto implements UserDetails {
     private Timestamp deletedAt;
 
     @Builder
-    public UserDto(Long id, String userName, String password, UserRole role, Timestamp registeredAt, Timestamp updatedAt, Timestamp deletedAt) {
+    public UserDto(Long id, String username, String password, UserRole role, Timestamp registeredAt, Timestamp updatedAt, Timestamp deletedAt) {
         this.id = id;
-        this.userName = userName;
+        this.username = username;
         this.password = password;
         this.role = role;
         this.registeredAt = registeredAt;
@@ -38,7 +42,7 @@ public class UserDto implements UserDetails {
     public static UserDto fromEntity(User user) {
         return UserDto.builder()
                 .id(user.getId())
-                .userName(user.getUserName())
+                .username(user.getUserName())
                 .password(user.getPassword())
                 .role(user.getRole())
                 .registeredAt(user.getRegisteredAt())
@@ -48,31 +52,31 @@ public class UserDto implements UserDetails {
     }
 
     @Override
+    @JsonIgnore
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of(new SimpleGrantedAuthority(this.role.toString()));
     }
 
     @Override
-    public String getUsername() {
-        return this.userName;
-    }
-
-    @Override
+    @JsonIgnore
     public boolean isAccountNonExpired() {
         return this.deletedAt == null;
     }
 
     @Override
+    @JsonIgnore
     public boolean isAccountNonLocked() {
         return this.deletedAt == null;
     }
 
     @Override
+    @JsonIgnore
     public boolean isCredentialsNonExpired() {
         return this.deletedAt == null;
     }
 
     @Override
+    @JsonIgnore
     public boolean isEnabled() {
         return this.deletedAt == null;
     }

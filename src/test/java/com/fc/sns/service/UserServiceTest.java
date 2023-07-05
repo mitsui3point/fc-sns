@@ -6,6 +6,7 @@ import com.fc.sns.fixture.UserFixture;
 import com.fc.sns.model.UserDto;
 import com.fc.sns.model.entity.User;
 import com.fc.sns.repository.AlarmRepository;
+import com.fc.sns.repository.UserCacheRepository;
 import com.fc.sns.repository.UserRepository;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -42,6 +43,9 @@ class UserServiceTest {
 
     @MockBean
     private AlarmRepository alarmRepository;
+
+    @MockBean
+    private UserCacheRepository userCacheRepository;
 
     @ParameterizedTest
     @MethodSource("userFixtureSource")
@@ -104,16 +108,37 @@ class UserServiceTest {
 
     @ParameterizedTest
     @MethodSource("userFixtureSource")
-    void 로그인이_정상적으로_동작하는_경우(User user) {
+    void 로그인이_캐시조회로_정상적으로_동작하는_경우(User user) {
         //when
-        when(userRepository.findByUserName(user.getUserName())).thenReturn(Optional.of(user));
+        when(userCacheRepository.getUserDto(user.getUserName())).thenReturn(Optional.of(mock(UserDto.class)));
+        doNothing().when(userCacheRepository).setUserDto(any());
         when(encoder.matches(any(), any())).thenReturn(true);
 
         //then
         Assertions.assertDoesNotThrow(() -> {
             String token = userService.login(user.getUserName(), user.getPassword());
         });
+        verify(userCacheRepository, times(1)).getUserDto(user.getUserName());
+        verify(userCacheRepository, times(1)).setUserDto(any());
+        verify(encoder, times(1)).matches(any(), any());
+    }
+
+    @ParameterizedTest
+    @MethodSource("userFixtureSource")
+    void 로그인이_DB조회로_정상적으로_동작하는_경우(User user) {
+        //when
+        when(userCacheRepository.getUserDto(user.getUserName())).thenReturn(Optional.empty());
+        when(userRepository.findByUserName(user.getUserName())).thenReturn(Optional.of(user));
+        doNothing().when(userCacheRepository).setUserDto(any());
+        when(encoder.matches(any(), any())).thenReturn(true);
+
+        //then
+        Assertions.assertDoesNotThrow(() -> {
+            String token = userService.login(user.getUserName(), user.getPassword());
+        });
+        verify(userCacheRepository, times(1)).getUserDto(user.getUserName());
         verify(userRepository, times(1)).findByUserName(user.getUserName());
+        verify(userCacheRepository, times(1)).setUserDto(any());
         verify(encoder, times(1)).matches(any(), any());
     }
 
