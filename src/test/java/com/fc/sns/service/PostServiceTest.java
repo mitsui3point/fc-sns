@@ -19,6 +19,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -47,6 +48,9 @@ public class PostServiceTest {
 
     @Mock
     private AlarmRepository alarmRepository;
+
+    @Mock
+    private AlarmService alarmService;
 
 
     @ParameterizedTest
@@ -261,6 +265,7 @@ public class PostServiceTest {
         when(likeRepository.findByUserAndPost(likeUser, post)).thenReturn(Optional.empty());
         when(likeRepository.save(any())).thenReturn(like);
         when(alarmRepository.save(any())).thenReturn(alarm);
+        doNothing().when(alarmService).send(any(), any());
 
         //then
         assertDoesNotThrow(() -> {
@@ -271,6 +276,7 @@ public class PostServiceTest {
         verify(likeRepository, times(1)).findByUserAndPost(likeUser, post);
         verify(likeRepository, times(1)).save(any());
         verify(alarmRepository, times(1)).save(any());
+        verify(alarmService, times(1)).send(any(), any());
     }
 
     @ParameterizedTest
@@ -359,6 +365,7 @@ public class PostServiceTest {
         when(postRepository.findById(post.getId())).thenReturn(Optional.of(post));
         when(commentRepository.save(any())).thenReturn(comment);
         when(alarmRepository.save(any())).thenReturn(alarm);
+        doNothing().when(alarmService).send(any(), any());
 
         //then
         assertDoesNotThrow(() -> {
@@ -368,6 +375,7 @@ public class PostServiceTest {
         verify(postRepository, times(1)).findById(post.getId());
         verify(commentRepository, times(1)).save(any());
         verify(alarmRepository, times(1)).save(any());
+        verify(alarmService, times(1)).send(any(), any());
     }
 
     @ParameterizedTest

@@ -6,6 +6,8 @@ import com.fc.sns.controller.request.UserLoginRequest;
 import com.fc.sns.exception.ErrorCode;
 import com.fc.sns.exception.SnsApplicationException;
 import com.fc.sns.model.UserDto;
+import com.fc.sns.repository.EmitterRepository;
+import com.fc.sns.service.AlarmService;
 import com.fc.sns.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -22,10 +24,10 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -44,6 +46,12 @@ public class UserControllerTest {
 
     @MockBean
     private UserService userService;
+
+    @MockBean
+    private AlarmService alarmService;
+
+    @MockBean
+    private EmitterRepository emitterRepository;
 
     @Autowired
     private MockMvc mvc;
@@ -183,13 +191,36 @@ public class UserControllerTest {
                         .contentType(MediaType.APPLICATION_JSON))
                 .andDo(print())
                 .andExpect(status().isOk());
+        verify(userService, times(1)).alarms(any(), any());
     }
 
     @Test
     @WithAnonymousUser
     void 알람기능요청시_로그인하지_않은_경우() throws Exception {
-        when(userService.alarms(any(), any())).thenReturn(Page.empty());
         mvc.perform(get("/api/v1/users/alarm")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @WithMockUser
+    void 알람기능_SSE_구독요청() throws Exception {
+        //when
+        setAuthentication();
+        SseEmitter sseEmitter = mock(SseEmitter.class);
+        when(alarmService.connectAlarm(anyLong())).thenReturn(sseEmitter);
+        mvc.perform(get("/api/v1/users/alarm/subscribe"))
+                //then
+                .andDo(print())
+                .andExpect(status().isOk());
+        verify(alarmService, times(1)).connectAlarm(anyLong());
+    }
+
+    @Test
+    @WithAnonymousUser
+    void 알람기능_SSE_구독요청_로그인하지_않은_경우() throws Exception {
+        mvc.perform(get("/api/v1/users/alarm/subscribe")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andDo(print())
                 .andExpect(status().isUnauthorized());

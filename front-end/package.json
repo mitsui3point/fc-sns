@@ -27,7 +27,8 @@
     "stylis": "4.0.13",
     "stylis-plugin-rtl": "2.1.1",
     "web-vitals": "2.1.4",
-    "yup": "0.32.11"
+    "yup": "0.32.11",
+    "event-source-polyfill": "1.0.31"
   },
   "scripts": {
     "start": "react-scripts start",

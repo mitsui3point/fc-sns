@@ -17,6 +17,8 @@ public enum ErrorCode {
     INVALID_POST_PERMISSION(HttpStatus.UNAUTHORIZED, "Post permission is invalid"),
     ALREADY_LIKED(HttpStatus.CONFLICT, "User already liked the post"),
 
+    ALARM_CONNECT_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "Connect alarm occurs error"),
+
     INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "Internal server error"),
     ;
 
@@ -27,5 +29,4 @@ public enum ErrorCode {
         this.status = status;
         this.message = message;
     }
-
 }
