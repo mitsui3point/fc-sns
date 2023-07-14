@@ -100,11 +100,10 @@ function Alarm() {
 
   useEffect(() => {
     handleGetAlarm();
-    console.log(`process.env.REACT_APP_SERVER_URL: ${process.env.REACT_APP_SERVER_URL}`)
     console.log(`process.env: ${process.env}`)
+    console.dir(process.env)
     console.log(`window.location.origin: ${window.location.origin}`)
     //최초 subscribe
-    // eventSource = new EventSource("http://localhost:8080/api/v1/users/alarm/subscribe?token=" + localStorage.getItem('token'));
     eventSource = new EventSourcePolyfill(`${window.location.origin}/api/v1/users/alarm/subscribe`, {
       headers: {
         Authorization: 'Bearer ' + localStorage.getItem('token')
